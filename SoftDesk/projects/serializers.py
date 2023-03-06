@@ -18,7 +18,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         fields =  '__all__'
 
     def get_issues(self, instance):
-        queryset = Issue.objects.filter(project_id=instance.id)
+        queryset = Issue.objects.filter(project=instance.id)
         return IssueSerializer(queryset, many=True).data
 
 

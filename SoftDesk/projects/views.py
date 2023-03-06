@@ -11,3 +11,5 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
  
     def get_queryset(self):
         return Project.objects.all()
+    
+    
