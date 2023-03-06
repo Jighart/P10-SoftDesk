@@ -2,12 +2,24 @@ from rest_framework import serializers
 from projects.models import Project, Contributor, Issue, Comment
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = '__all__'
-        read_only__fields = ('author', 'id')
+        fields = ['id', 'title', 'type', 'author']
+
+
+class ProjectDetailSerializer(serializers.ModelSerializer):
+
+    issues = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields =  '__all__'
+
+    def get_issues(self, instance):
+        queryset = Issue.objects.filter(project_id=instance.id)
+        return IssueSerializer(queryset, many=True).data
 
 
 class ContributorSerializer(serializers.ModelSerializer):
