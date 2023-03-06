@@ -19,4 +19,4 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     detail_serializer_class = IssueDetailSerializer
 
     def get_queryset(self):
-        return Issue.objects.all()
+        return Issue.objects.filter(project=self.kwargs['projects_pk'])
