@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from django.db import transaction
+from django.db import transaction, IntegrityError
  
 from projects.models import Project, Contributor, Issue, Comment
 from projects.serializers import UserSerializer, ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
@@ -38,6 +38,44 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(ProjectViewset, self).destroy(request, *args, **kwargs)
     
 
+class ContributorsViewset(ModelViewSet):
+
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        contributor_users = [contributor.user.id for contributor in Contributor.objects.filter(project=self.kwargs['projects_pk'])]
+        return User.objects.filter(id__in=contributor_users)
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        try:
+            user_to_add = User.objects.filter(email=request.data['id']).first()
+            if user_to_add:
+                contributor = Contributor.objects.create(
+                    user=user_to_add,
+                    project=Project.objects.filter(id=self.kwargs['projects_pk']).first()
+                )
+                contributor.save()
+                return Response(status=status.HTTP_201_CREATED)
+            return Response(data={'error': 'User does not exist !'})
+        except IntegrityError:
+            return Response(data={'error': 'User already added !'})
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        user_to_delete = User.objects.filter(id=self.kwargs['pk']).first()
+        if user_to_delete == request.user:
+            return Response(data={'error': 'You cannot delete yourself !'})
+        if user_to_delete:
+            contributor = Contributor.objects.filter(user=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
+            if contributor:
+                contributor.delete()
+                return Response()
+            return Response(data={'error': 'Contributor not assigned to project !'})
+        else:
+            return Response(data={'error': 'User does not exist !'})
+    
+
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = IssueListSerializer
@@ -68,15 +106,6 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         return super(IssueViewset, self).destroy(request, *args, **kwargs)
-    
-
-class ContributorsViewset(ModelViewSet):
-
-    serializer_class = UserSerializer
-
-    def get_queryset(self):
-        contributor_users = [contributor.user.id for contributor in Contributor.objects.filter(project=self.kwargs['projects_pk'])]
-        return User.objects.filter(id__in=contributor_users)
     
 
 class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
