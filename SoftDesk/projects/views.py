@@ -28,6 +28,15 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         contributor.save()
         return Response(project.data, status=status.HTTP_201_CREATED)
     
+    def update(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.data["author"] = request.user.id
+        request.POST._mutable = False
+        return super(ProjectViewset, self).update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super(ProjectViewset, self).destroy(request, *args, **kwargs)
+    
 
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
