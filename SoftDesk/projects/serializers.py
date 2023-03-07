@@ -6,7 +6,7 @@ from projects.models import Project, Contributor, Issue, Comment
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email']
+        fields = '__all__'
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = '__all__'
+        fields = ['id', 'created_time', 'title', 'desc', 'priority', 'tag', 'status', 'author', 'assignee', 'project', 'comments']
 
 
 class CommentSerializer(serializers.ModelSerializer):

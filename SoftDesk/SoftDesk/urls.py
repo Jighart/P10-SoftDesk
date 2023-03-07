@@ -17,17 +17,25 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework_nested import routers
 
-from projects.views import ProjectViewset, IssueViewset
+from projects.views import ProjectViewset, IssueViewset, ContributorsViewset, CommentViewset
 
 project_router = routers.SimpleRouter()
 project_router.register(r'projects/?', ProjectViewset, basename='projects')
 
+users_router = routers.NestedSimpleRouter(project_router, r"projects/?", lookup="projects", trailing_slash=False)
+users_router.register(r"users/?", ContributorsViewset, basename="users", )
+
 issue_router = routers.NestedSimpleRouter(project_router, r"projects/?", lookup='projects', trailing_slash=False)
 issue_router.register(r"issues/?", IssueViewset, basename="issues")
+
+comment_router = routers.NestedSimpleRouter(issue_router, r"issues/?", lookup="issues", trailing_slash=False)
+comment_router.register(r"comments/?", CommentViewset, basename="comments", )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include(project_router.urls)),
+    path('api/', include(users_router.urls)),
     path('api/', include(issue_router.urls)),
+    path('api/', include(comment_router.urls)),
 ]

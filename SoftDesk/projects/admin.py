@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Issue, Project, Contributor
+from .models import Issue, Project, Contributor, Comment
 
 
 @admin.register(Issue)
@@ -15,5 +15,10 @@ class ProjectAdmin(admin.ModelAdmin):
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
     list_display = ('user',)
+
+
+@admin.register(Comment)
+class ContributorAdmin(admin.ModelAdmin):
+    list_display = ('issue',)
 
 # Register your models here.
