@@ -19,7 +19,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
     
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        request.data["author"] = request.user.id
+        request.data['author'] = request.user.id
         project = super(ProjectViewset, self).create(request, *args, **kwargs)
         contributor = Contributor.objects.create(
             user=request.user,
@@ -30,7 +30,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data["author"] = request.user.id
+        request.data['author'] = request.user.id
         request.POST._mutable = False
         return super(ProjectViewset, self).update(request, *args, **kwargs)
 
@@ -45,6 +45,29 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     def get_queryset(self):
         return Issue.objects.filter(project=self.kwargs['projects_pk'])
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.data['author'] = request.user.id
+        if not request.data['assignee']:
+            request.data['assignee'] = request.user.id
+        request.data['project'] = self.kwargs['projects_pk']
+        request.POST._mutable = False
+        return super(IssueViewset, self).create(request, *args, **kwargs)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.data['author'] = request.user.id
+        if not request.data['assignee']:
+            request.data['assignee'] = request.user.id
+        request.data['project'] = self.kwargs['projects_pk']
+        request.POST._mutable = False
+        return super(IssueViewset, self).update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super(IssueViewset, self).destroy(request, *args, **kwargs)
     
 
 class ContributorsViewset(ModelViewSet):
@@ -63,3 +86,22 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     def get_queryset(self):
         return Comment.objects.filter(issue=self.kwargs['issues_pk'])
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.data['author'] = request.user.id
+        request.data['issue'] = self.kwargs['issues_pk']
+        request.POST._mutable = False
+        return super(CommentViewset, self).create(request, *args, **kwargs)
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        request.POST._mutable = True
+        request.data['author'] = request.user.id
+        request.data['issue'] = self.kwargs['issues_pk']
+        request.POST._mutable = False
+        return super(CommentViewset, self).update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super(CommentViewset, self).destroy(request, *args, **kwargs)
