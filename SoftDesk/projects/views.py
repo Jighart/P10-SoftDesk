@@ -1,10 +1,14 @@
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
+from rest_framework import status
 from django.contrib.auth.models import User
+from django.db import transaction
  
 from projects.models import Project, Contributor, Issue, Comment
 from projects.serializers import UserSerializer, ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
 from projects.mixins import GetDetailSerializerClassMixin
  
+
 class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
  
     serializer_class = ProjectListSerializer
@@ -12,6 +16,17 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
  
     def get_queryset(self):
         return Project.objects.all()
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        request.data["author"] = request.user.id
+        project = super(ProjectViewset, self).create(request, *args, **kwargs)
+        contributor = Contributor.objects.create(
+            user=request.user,
+            project=Project.objects.filter(id=project.data['id']).first()
+        )
+        contributor.save()
+        return Response(project.data, status=status.HTTP_201_CREATED)
     
 
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):

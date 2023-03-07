@@ -63,5 +63,5 @@ class Issue(models.Model):
 class Comment(models.Model):
     description = models.TextField(max_length=2048)
     author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE, related_name='comments')
+    issue = models.ForeignKey(to=Issue, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)

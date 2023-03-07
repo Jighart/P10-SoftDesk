@@ -46,9 +46,15 @@ class IssueListSerializer(serializers.ModelSerializer):
 
 class IssueDetailSerializer(serializers.ModelSerializer):
 
+    comments = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = ['id', 'created_time', 'title', 'desc', 'priority', 'tag', 'status', 'author', 'assignee', 'project', 'comments']
+
+    def get_comments(self, instance):
+        queryset = Comment.objects.filter(issue=instance.id)
+        return CommentSerializer(queryset, many=True).data
 
 
 class CommentSerializer(serializers.ModelSerializer):

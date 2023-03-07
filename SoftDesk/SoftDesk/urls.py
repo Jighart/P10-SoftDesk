@@ -19,23 +19,23 @@ from rest_framework_nested import routers
 
 from projects.views import ProjectViewset, IssueViewset, ContributorsViewset, CommentViewset
 
-project_router = routers.SimpleRouter()
-project_router.register(r'projects/?', ProjectViewset, basename='projects')
+projects_router = routers.SimpleRouter()
+projects_router.register(r'projects/?', ProjectViewset, basename='projects')
 
-users_router = routers.NestedSimpleRouter(project_router, r"projects/?", lookup="projects", trailing_slash=False)
+users_router = routers.NestedSimpleRouter(projects_router, r"projects/?", lookup="projects", trailing_slash=False)
 users_router.register(r"users/?", ContributorsViewset, basename="users", )
 
-issue_router = routers.NestedSimpleRouter(project_router, r"projects/?", lookup='projects', trailing_slash=False)
-issue_router.register(r"issues/?", IssueViewset, basename="issues")
+issues_router = routers.NestedSimpleRouter(projects_router, r"projects/?", lookup='projects', trailing_slash=False)
+issues_router.register(r"issues/?", IssueViewset, basename="issues")
 
-comment_router = routers.NestedSimpleRouter(issue_router, r"issues/?", lookup="issues", trailing_slash=False)
-comment_router.register(r"comments/?", CommentViewset, basename="comments", )
+comments_router = routers.NestedSimpleRouter(issues_router, r"issues/?", lookup="issues", trailing_slash=False)
+comments_router.register(r"comments/?", CommentViewset, basename="comments", )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/', include(project_router.urls)),
+    path('api/', include(projects_router.urls)),
     path('api/', include(users_router.urls)),
-    path('api/', include(issue_router.urls)),
-    path('api/', include(comment_router.urls)),
+    path('api/', include(issues_router.urls)),
+    path('api/', include(comments_router.urls)),
 ]
