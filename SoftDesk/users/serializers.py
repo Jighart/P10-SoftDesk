@@ -1,31 +1,35 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.validators import UniqueValidator
+from django.contrib.auth.password_validation import validate_password
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
 
-    tokens = serializers.SerializerMethodField()
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'tokens']
-
-    def validate_email(self, value: str) -> str:
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("User already exists")
-        return value
-
-    def validate_password(self, value: str) -> str:
-        if value is not None:
-            return make_password(value)
-        raise serializers.ValidationError("Password is empty")
-
-    def get_tokens(self, user: User) -> dict:
-        tokens = RefreshToken.for_user(user)
-        data = {
-            "refresh": str(tokens),
-            "access": str(tokens.access_token)
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password2']
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
         }
-        return data
+
+    def create(self, data):
+        new_user = User.objects.create_user(
+            username=data['username'],
+            email=data['email'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+        )
+        new_user.set_password(data['password'])
+        new_user.save()
+
+        return new_user
