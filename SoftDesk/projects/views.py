@@ -23,7 +23,9 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
     
     @transaction.atomic
     def create(self, request, *args, **kwargs):
+        request.POST._mutable = True
         request.data['author'] = request.user.id
+        request.POST._mutable = False
         project = super(ProjectViewset, self).create(request, *args, **kwargs)
         contributor = Contributor.objects.create(
             user=request.user,
@@ -74,7 +76,6 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
         user_to_delete = Contributor.objects.filter(id=self.kwargs['pk']).first()
-        print(user_to_delete)
         if user_to_delete == request.user:
             return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_400_BAD_REQUEST)
         if user_to_delete:
@@ -101,8 +102,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
-        if not request.data['author']:
-            request.data['author'] = request.user.id
+        request.data['author'] = request.user.id
         if not request.data['assignee']:
             request.data['assignee'] = request.user.id
         request.data['project'] = self.kwargs['projects_pk']
@@ -112,8 +112,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        if not request.data['author']:
-            request.data['author'] = request.user.id
+        request.data['author'] = request.user.id
         if not request.data['assignee']:
             request.data['assignee'] = request.user.id
         request.data['project'] = self.kwargs['projects_pk']
@@ -136,8 +135,7 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
-        if not request.data['author']:
-            request.data['author'] = request.user.id
+        request.data['author'] = request.user.id
         request.data['issue'] = self.kwargs['issues_pk']
         request.POST._mutable = False
         return super(CommentViewset, self).create(request, *args, **kwargs)
@@ -145,8 +143,7 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        if not request.data['author']:
-            request.data['author'] = request.user.id
+        request.data['author'] = request.user.id
         request.data['issue'] = self.kwargs['issues_pk']
         request.POST._mutable = False
         return super(CommentViewset, self).update(request, *args, **kwargs)
