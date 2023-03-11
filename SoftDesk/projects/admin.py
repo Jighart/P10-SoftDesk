@@ -20,5 +20,3 @@ class ContributorAdmin(admin.ModelAdmin):
 @admin.register(Comment)
 class ContributorAdmin(admin.ModelAdmin):
     list_display = ('issue',)
-
-# Register your models here.
