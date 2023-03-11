@@ -29,12 +29,19 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
         return IssueListSerializer(queryset, many=True).data
 
 
-class ContributorSerializer(serializers.ModelSerializer):
+class ContributorListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Contributor
+        fields = ['role', 'project', 'user', 'id']
+        # read_only__fields = ('role')
+
+
+class ContributorDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributor
         fields = '__all__'
-        read_only__fields = ('project', 'role', 'id')
 
 
 class IssueListSerializer(serializers.ModelSerializer):

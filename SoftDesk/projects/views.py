@@ -5,8 +5,9 @@ from django.contrib.auth.models import User
 from django.db import transaction, IntegrityError
  
 from projects.models import Project, Contributor, Issue, Comment
-from projects.serializers import UserSerializer, ProjectListSerializer, ProjectDetailSerializer, ContributorSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
+from projects.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorListSerializer, ContributorDetailSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
 from projects.mixins import GetDetailSerializerClassMixin
+from projects.permissions import ProjectPermissions, ContributorPermissions, IssuePermissions, CommentPermissions
  
 
 class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
@@ -39,42 +40,49 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(ProjectViewset, self).destroy(request, *args, **kwargs)
     
 
-class ContributorsViewset(ModelViewSet):
+class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
-    serializer_class = UserSerializer
+    serializer_class = ContributorListSerializer
+    detail_serializer_class = ContributorDetailSerializer
 
     def get_queryset(self):
-        contributor_users = [contributor.user.id for contributor in Contributor.objects.filter(project=self.kwargs['projects_pk'])]
-        return User.objects.filter(id__in=contributor_users)
-    
+        return Contributor.objects.filter(project=self.kwargs['projects_pk'])
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        try:
-            user_to_add = User.objects.filter(email=request.data['id']).first()
-            if user_to_add:
-                contributor = Contributor.objects.create(
-                    user=user_to_add,
-                    project=Project.objects.filter(id=self.kwargs['projects_pk']).first()
-                )
-                contributor.save()
-                return Response(status=status.HTTP_201_CREATED)
-            return Response(data={'error': 'User does not exist !'})
-        except IntegrityError:
-            return Response(data={'error': 'User already added !'})
+        serializer = ContributorListSerializer(data=request.data, many=True)
+        if serializer.is_valid():
+            try:
+                user_to_add = User.objects.filter(id=request.data['user']).first()
+                print(user_to_add)
+                if user_to_add:
+                    contributor = Contributor.objects.create(
+                        user=user_to_add,
+                        project=Project.objects.filter(id=self.kwargs['projects_pk']).first()
+                    )
+                    contributor.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(data={'error': 'User does not exist!'}, status=status.HTTP_400_BAD_REQUEST)
+            except IntegrityError:
+                return Response(data={'error': 'User already added!'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
-        user_to_delete = User.objects.filter(id=self.kwargs['pk']).first()
+        user_to_delete = Contributor.objects.filter(id=self.kwargs['pk']).first()
+        print(user_to_delete)
         if user_to_delete == request.user:
-            return Response(data={'error': 'You cannot delete yourself !'})
+            return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_400_BAD_REQUEST)
         if user_to_delete:
-            contributor = Contributor.objects.filter(user=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
+            contributor = Contributor.objects.filter(id=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
+            if contributor.role == 'AUTHOR':
+                return Response('Project author cannot be deleted!', status=status.HTTP_400_BAD_REQUEST)
             if contributor:
                 contributor.delete()
-                return Response()
-            return Response(data={'error': 'Contributor not assigned to project !'})
+                return Response('Contributor successfully deleted.', status=status.HTTP_204_NO_CONTENT)
+            return Response(data={'error': 'Contributor not assigned to project!'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(data={'error': 'User does not exist !'})
+            return Response(data={'error': 'User does not exist!'}, status=status.HTTP_400_BAD_REQUEST)
     
 
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
@@ -88,7 +96,8 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
+        if not request.data['author']:
+            request.data['author'] = request.user.id
         if not request.data['assignee']:
             request.data['assignee'] = request.user.id
         request.data['project'] = self.kwargs['projects_pk']
@@ -98,7 +107,8 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
+        if not request.data['author']:
+            request.data['author'] = request.user.id
         if not request.data['assignee']:
             request.data['assignee'] = request.user.id
         request.data['project'] = self.kwargs['projects_pk']
@@ -120,7 +130,8 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
+        if not request.data['author']:
+            request.data['author'] = request.user.id
         request.data['issue'] = self.kwargs['issues_pk']
         request.POST._mutable = False
         return super(CommentViewset, self).create(request, *args, **kwargs)
@@ -128,7 +139,8 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
+        if not request.data['author']:
+            request.data['author'] = request.user.id
         request.data['issue'] = self.kwargs['issues_pk']
         request.POST._mutable = False
         return super(CommentViewset, self).update(request, *args, **kwargs)
