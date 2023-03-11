@@ -22,7 +22,7 @@ class ProjectDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields =  '__all__'
+        fields =  ['id', 'title', 'description', 'type', 'author', 'issues']
 
     def get_issues(self, instance):
         queryset = Issue.objects.filter(project=instance.id)

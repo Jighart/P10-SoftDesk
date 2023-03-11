@@ -1,5 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.contrib.auth.models import User
 from django.db import transaction, IntegrityError
@@ -10,6 +12,7 @@ from projects.mixins import GetDetailSerializerClassMixin
 from projects.permissions import ProjectPermissions, ContributorPermissions, IssuePermissions, CommentPermissions
  
 
+@permission_classes([IsAuthenticated, ProjectPermissions])
 class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
  
     serializer_class = ProjectListSerializer
@@ -40,6 +43,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(ProjectViewset, self).destroy(request, *args, **kwargs)
     
 
+@permission_classes([IsAuthenticated, ContributorPermissions])
 class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = ContributorListSerializer
@@ -85,6 +89,7 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
             return Response(data={'error': 'User does not exist!'}, status=status.HTTP_400_BAD_REQUEST)
     
 
+@permission_classes([IsAuthenticated, IssuePermissions])
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = IssueListSerializer
@@ -119,6 +124,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(IssueViewset, self).destroy(request, *args, **kwargs)
     
 
+@permission_classes([IsAuthenticated, CommentPermissions])
 class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = CommentSerializer
