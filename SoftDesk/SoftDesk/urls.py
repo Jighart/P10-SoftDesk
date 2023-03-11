@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework_nested import routers
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from projects.views import ProjectViewset, IssueViewset, ContributorsViewset, CommentViewset
+from users.views import SignupViewset
 
 projects_router = routers.SimpleRouter()
 projects_router.register(r'projects/?', ProjectViewset, basename='projects')
@@ -34,6 +36,11 @@ comments_router.register(r"comments/?", CommentViewset, basename="comments", )
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
+
+    path('api/signup/', SignupViewset.as_view(), name='signup'),
+    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     path('api/', include(projects_router.urls)),
     path('api/', include(users_router.urls)),
     path('api/', include(issues_router.urls)),

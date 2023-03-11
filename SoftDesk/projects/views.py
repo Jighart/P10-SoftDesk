@@ -28,6 +28,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         contributor.save()
         return Response(project.data, status=status.HTTP_201_CREATED)
     
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
         request.data['author'] = request.user.id
