@@ -1,10 +1,10 @@
 #### Liste des utilisateurs existants :
 
-| *ID* | *Identifiant* | *Mot de passe* |
-|------|---------------|----------------|
-| 1    | testuser      | password321    |
-| 3    | user_2        | password321    |
-| 4    | new_user      | password321    |
+| *ID* | *Identifiant* | *Mot de passe*  |
+|------|---------------|-----------------|
+| 1    | admin         | SoftDesk1234    |
+| 2    | TestUser1     | SoftDesk1234    |
+| 3    | TestUser2     | SoftDesk1234    |
 
 
 #### Liste des points de terminaison de l'API :
