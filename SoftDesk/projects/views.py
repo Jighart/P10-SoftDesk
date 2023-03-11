@@ -12,7 +12,7 @@ from projects.mixins import GetDetailSerializerClassMixin
 from projects.permissions import ProjectPermissions, ContributorPermissions, IssuePermissions, CommentPermissions
  
 
-# @permission_classes([IsAuthenticated, ProjectPermissions])
+@permission_classes([IsAuthenticated, ProjectPermissions])
 class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
  
     serializer_class = ProjectListSerializer
