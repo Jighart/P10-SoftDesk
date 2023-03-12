@@ -29,7 +29,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         project = super(ProjectViewset, self).create(request, *args, **kwargs)
         contributor = Contributor.objects.create(
             user=request.user,
-            project=Project.objects.filter(id=project.data['id']).first()
+            project=Project.objects.get(id=project.data['id'])
         )
         contributor.save()
         return Response(project.data, status=status.HTTP_201_CREATED)
@@ -56,15 +56,14 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        serializer = ContributorListSerializer(data=request.data, many=True)
+        serializer = ContributorListSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user_to_add = User.objects.filter(id=request.data['user']).first()
-                print(user_to_add)
+                user_to_add = User.objects.get(id=request.data['user'])
                 if user_to_add:
                     contributor = Contributor.objects.create(
                         user=user_to_add,
-                        project=Project.objects.filter(id=self.kwargs['projects_pk']).first()
+                        project=Project.objects.get(id=self.kwargs['projects_pk'])
                     )
                     contributor.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -102,9 +101,9 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
-        if not request.data['assignee']:
-            request.data['assignee'] = Contributor.objects.get(user=request.user.id, project=self.kwargs['projects_pk'])
+        request.data['author'] = request.user.pk
+        if 'assignee' not in request.POST:
+            request.data['assignee'] = request.user.pk
         request.data['project'] = self.kwargs['projects_pk']
         request.POST._mutable = False
         return super(IssueViewset, self).create(request, *args, **kwargs)
@@ -112,9 +111,9 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
-        request.data['author'] = request.user.id
-        if not request.data['assignee']:
-            request.data['assignee'] = request.user.id
+        request.data['author'] = request.user.pk
+        if 'assignee' not in request.POST:
+            request.data['assignee'] = request.user.pk
         request.data['project'] = self.kwargs['projects_pk']
         request.POST._mutable = False
         return super(IssueViewset, self).update(request, *args, **kwargs)

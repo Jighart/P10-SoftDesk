@@ -33,8 +33,7 @@ class ContributorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributor
-        fields = ['role', 'project', 'user', 'id']
-        # read_only__fields = ('role')
+        fields = ['id', 'role', 'project', 'user']
 
 
 class ContributorDetailSerializer(serializers.ModelSerializer):
@@ -48,7 +47,7 @@ class IssueListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'priority', 'status', 'tag', 'created_time', 'assignee']
+        fields = ['id', 'title', 'priority', 'status', 'tag', 'created_time']
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):
@@ -57,7 +56,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'created_time', 'title', 'desc', 'priority', 'tag', 'status', 'author', 'assignee', 'project', 'comments']
+        fields = ['id', 'created_time', 'title', 'description', 'priority', 'tag', 'status', 'author', 'assignee', 'project', 'comments']
 
     def get_comments(self, instance):
         queryset = Comment.objects.filter(issue=instance.id)

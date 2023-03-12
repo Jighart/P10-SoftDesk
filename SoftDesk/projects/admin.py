@@ -14,7 +14,7 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Contributor)
 class ContributorAdmin(admin.ModelAdmin):
-    list_display = ('user',)
+    list_display = ('user', 'project', 'role')
 
 
 @admin.register(Comment)
