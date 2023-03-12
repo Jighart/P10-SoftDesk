@@ -14,7 +14,10 @@ class Project(models.Model):
     title = models.CharField(max_length=128)
     description = models.TextField(max_length=2048)
     type = models.CharField(choices=TYPES, max_length=8)
-    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='author')
+    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
 
 
 class Contributor(models.Model):
@@ -55,12 +58,15 @@ class Issue(models.Model):
     title = models.CharField(max_length=128)
     desc = models.TextField(max_length=2048)
     tag = models.CharField(choices=TAGS, max_length=7)
-    priority = models.CharField(choices=PRIORITIES, max_length=6, default='LOW')
-    status = models.CharField(choices=STATUSES, max_length=11, default='TODO')
+    priority = models.CharField(choices=PRIORITIES, max_length=12, default='LOW')
+    status = models.CharField(choices=STATUSES, max_length=12, default='TODO')
     project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
-    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    assignee = models.ForeignKey(to=Contributor, on_delete=models.CASCADE)
+    author = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='issue_author')
+    assignee = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=author)
     created_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
 
 
 class Comment(models.Model):

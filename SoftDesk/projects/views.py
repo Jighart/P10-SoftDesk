@@ -104,7 +104,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
         request.POST._mutable = True
         request.data['author'] = request.user.id
         if not request.data['assignee']:
-            request.data['assignee'] = request.user.id
+            request.data['assignee'] = Contributor.objects.get(user=request.user.id, project=self.kwargs['projects_pk'])
         request.data['project'] = self.kwargs['projects_pk']
         request.POST._mutable = False
         return super(IssueViewset, self).create(request, *args, **kwargs)

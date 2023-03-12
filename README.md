@@ -5,6 +5,7 @@
 | 1    | admin         | SoftDesk1234    |
 | 2    | TestUser1     | SoftDesk1234    |
 | 3    | TestUser2     | SoftDesk1234    |
+| 4    | TestUser3     | SoftDesk1234    |
 
 
 #### Liste des points de terminaison de l'API :
