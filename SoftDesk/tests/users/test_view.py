@@ -3,18 +3,29 @@ from django.test import Client
 
 
 @pytest.fixture
-def api_client():
+def client():
     return Client()
 
-@pytest.mark.django_db
-def test_create_user(api_client):
-    user_data = {
-        'username': 'testuser',
-        'email': 'testuser@example.com',
+@pytest.fixture
+def credentials():
+    credentials = {
         'first_name': 'Test',
         'last_name': 'User',
-        'password': 'testpassword',
-        'password2': 'testpassword',
+        'username': 'TestUser',
+        'email': 'testuser@testing.com',
+        'password': 'TestPassword',
+        'password2': 'TestPassword'
     }
-    response = api_client.post('/api/signup/', user_data)
+    return credentials
+
+
+@pytest.mark.django_db
+def test_create_user(client, credentials):
+    response = client.post('/api/signup/', credentials)
     assert response.status_code == 201
+
+@pytest.mark.django_db
+def test_login(client, credentials):
+    client.post('/api/signup/', credentials)
+    response = client.post('/api/login/', {'username': 'TestUser', 'password': 'TestPassword'})
+    assert response.status_code == 200
