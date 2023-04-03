@@ -3,8 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from django.contrib.auth.models import User
-from django.db import transaction, IntegrityError
+from django.db import transaction
  
 from projects.models import Project, Contributor, Issue, Comment
 from projects.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorListSerializer, ContributorDetailSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
@@ -29,7 +28,8 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         project = super(ProjectViewset, self).create(request, *args, **kwargs)
         contributor = Contributor.objects.create(
             user=request.user,
-            project=Project.objects.get(id=project.data['id'])
+            project=Project.objects.get(id=project.data['id']),
+            role='AUTHOR'
         )
         contributor.save()
         return Response(project.data, status=status.HTTP_201_CREATED)
@@ -56,21 +56,11 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        serializer = ContributorListSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user_to_add = User.objects.get(id=request.data['user'])
-                if user_to_add:
-                    contributor = Contributor.objects.create(
-                        user=user_to_add,
-                        project=Project.objects.get(id=self.kwargs['projects_pk'])
-                    )
-                    contributor.save()
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                return Response(data={'error': 'User does not exist!'}, status=status.HTTP_400_BAD_REQUEST)
-            except IntegrityError:
-                return Response(data={'error': 'User already added!'}, status=status.HTTP_400_BAD_REQUEST)
-
+        request.POST._mutable = True
+        request.data['role'] = 'CONTRIBUTOR'
+        request.data['project'] = self.kwargs['projects_pk']
+        request.POST._mutable = False
+        return super(ContributorsViewset, self).create(request, *args, **kwargs)
 
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
