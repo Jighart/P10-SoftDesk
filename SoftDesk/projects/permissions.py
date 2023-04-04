@@ -1,6 +1,7 @@
 from rest_framework import permissions
+from rest_framework.generics import get_object_or_404
 
-from projects.models import Project, Contributor
+from projects.models import Project, Contributor, Issue
 
 
 def check_contributor(user, project):
@@ -40,14 +41,22 @@ class IssuePermissions(permissions.BasePermission):
 
     message = 'You dont have permission to do that.'
 
-    def has_object_permission(self, request, view, obj):
-        if not request.user.is_authenticated:
-            return False
+    def has_permission(self, request, view):
+        project = get_object_or_404(Project, id=view.kwargs['projects_pk'])
+        try:
+            issue = get_object_or_404(Issue, id=view.kwargs['issues_pk'])
+            return request.user == issue.author
+        except KeyError:
+            return project in Project.objects.filter(contributors__user=request.user)
 
-        if view.action in ['retrieve', 'list', 'create']:
-            return check_contributor(request.user, obj.project)
-        elif view.action in ['update', 'partial_update', 'destroy']:
-            return request.user == obj.author
+    # def has_object_permission(self, request, view, obj):
+    #     if not request.user.is_authenticated:
+    #         return False
+
+    #     if view.action in ['retrieve', 'list', 'create']:
+    #         return check_contributor(request.user, obj.project)
+    #     elif view.action in ['update', 'partial_update', 'destroy']:
+    #         return request.user == obj.author
 
 
 class CommentPermissions(permissions.BasePermission):

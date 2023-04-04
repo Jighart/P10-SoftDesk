@@ -52,6 +52,17 @@ def project_data2():
 
 
 @pytest.fixture
+def issue_data():
+    return {
+        'title': 'Test issue',
+        'description': 'Description of this issue',
+        'tag': 'TASK',
+        'priority': 'MEDIUM',
+        'status': 'IN PROGRESS'
+    }
+
+
+@pytest.fixture
 def get_user1_token(api_client, user_data):
     api_client.post('/api/signup/', data=user_data)
     response = api_client.post('/api/login/', data={
@@ -112,10 +123,16 @@ def test_user_gets_projects_list(create_project1, get_user1_token):
 
 
 @pytest.mark.django_db
-def test_user_deletes_project1(create_project1):
+def test_user_author_deletes_project1(create_project1):
     response = create_project1.delete('/api/projects/1/')
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    
+
+
+@pytest.mark.django_db
+def test_user_not_author_deletes_project1(create_project1, get_user2_token):
+    response = get_user2_token.delete('/api/projects/1/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
 
 @pytest.mark.django_db
 def test_user_gets_contributors_list(create_project1, get_user1_token):
@@ -166,3 +183,31 @@ def test_user_adds_duplicate_contributor(create_project1):
     assert response.json() == {'non_field_errors': ['The fields project, user must make a unique set.']}
 
 
+@pytest.mark.django_db
+def test_user_adds_issue_to_project(create_project1, issue_data):
+    response = create_project1.post('/api/projects/1/issues/', issue_data)
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_user2_cannot_see_project1_issue(create_project1, issue_data, user_data2):
+    create_project1.post('/api/signup/', user_data2)
+    create_project1.post('/api/projects/1/issues/', issue_data)
+
+    client = APIClient()
+    login = client.post('/api/login/', data={
+        'username': user_data2['username'],
+        'password': user_data2['password']
+    })
+    token = login.json()['access']
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+
+    response = client.get('/api/projects/1/issues/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_user_adds_comment_to_issue(create_project1, issue_data):
+    create_project1.post('/api/projects/1/issues/', issue_data)
+    response = create_project1.post('/api/projects/1/issues/1/comments/', data={'description': 'Lorem ipsum dolor sit amet'})
+    assert response.status_code == status.HTTP_201_CREATED

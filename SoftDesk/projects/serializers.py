@@ -41,7 +41,7 @@ class IssueListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'title', 'priority', 'status', 'tag', 'created_time']
+        fields = ['id', 'title', 'priority', 'author', 'status', 'tag', 'created_time']
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):
