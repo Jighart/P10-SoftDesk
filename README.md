@@ -2,10 +2,10 @@
 
 | *ID* | *Identifiant* | *Mot de passe*  |
 |------|---------------|-----------------|
-| 1    | admin         | SoftDesk1234    |
-| 2    | TestUser1     | SoftDesk1234    |
-| 3    | TestUser2     | SoftDesk1234    |
-| 4    | TestUser3     | SoftDesk1234    |
+| 1    | TestUser1     | SoftDesk1234    |
+| 2    | TestUser2     | SoftDesk1234    |
+| 3    | TestUser3     | SoftDesk1234    |
+| 4    | admin         | SoftDesk1234    |
 
 
 #### Liste des points de terminaison de l'API :

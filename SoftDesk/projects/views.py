@@ -45,7 +45,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(ProjectViewset, self).destroy(request, *args, **kwargs)
     
 
-@permission_classes([IsAuthenticated, ContributorPermissions])
+@permission_classes([ContributorPermissions])
 class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = ContributorListSerializer
@@ -64,20 +64,21 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
-        user_to_delete = Contributor.objects.filter(id=self.kwargs['pk']).first()
-        if user_to_delete == request.user:
-            return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_400_BAD_REQUEST)
-        if user_to_delete:
-            contributor = Contributor.objects.filter(id=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
-            if contributor.role == 'AUTHOR':
-                return Response('Project author cannot be deleted!', status=status.HTTP_400_BAD_REQUEST)
-            if contributor:
-                contributor.delete()
-                return Response('Contributor successfully deleted.', status=status.HTTP_204_NO_CONTENT)
-            return Response(data={'error': 'Contributor not assigned to project!'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user_to_delete = Contributor.objects.get(id=self.kwargs['pk'])
+            if user_to_delete.user == request.user:
+                return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        except Contributor.DoesNotExist:
+            return Response(data={'error': 'User does not exist!'}, status=status.HTTP_404_NOT_FOUND)
+        
+        contributor = Contributor.objects.filter(id=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
+        if contributor:
+            contributor.delete()
+            return Response('Contributor successfully deleted.', status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response(data={'error': 'User does not exist!'}, status=status.HTTP_400_BAD_REQUEST)
-    
+            return Response(data={'error': 'Contributor not assigned to project!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
 @permission_classes([IsAuthenticated, IssuePermissions])
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
@@ -112,7 +113,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
         return super(IssueViewset, self).destroy(request, *args, **kwargs)
     
 
-@permission_classes([IsAuthenticated, CommentPermissions])
+@permission_classes([CommentPermissions])
 class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     serializer_class = CommentSerializer
