@@ -1,4 +1,68 @@
-#### Liste des utilisateurs existants :
+## Initialisation du projet
+
+### Windows :
+
+#### • Récupération du projet
+
+```
+git clone https://github.com/Jighart/P10-SoftDesk.git
+```
+
+#### • Activer l'environnement virtuel
+
+```
+cd P10-SoftDesk
+python -m venv venv 
+venv\Scripts\activate.bat
+```
+
+#### • Installer les paquets requis
+
+```
+pip install -r requirements.txt
+```
+
+
+### MacOS et Linux :
+
+#### • Récupération du projet
+```
+git clone https://github.com/Jighart/P10-SoftDesk.git
+```
+
+#### • Activer l'environnement virtuel
+```
+cd P10-SoftDesk 
+python3 -m venv venv 
+source venv/bin/activate
+```
+
+#### • Installer les paquets requis
+```
+pip install -r requirements.txt
+```
+
+## Utilisation
+
+### Faire les migrations (si nécessaire) :
+
+```
+python manage.py migrate
+```
+
+### Lancer le serveur Django :
+
+```
+python manage.py runserver
+```
+
+Il est possible de naviguer dans l'API avec différents outils :
+
+- la plateforme [Postman](https://www.postman.com/) ;
+- l'outil de commandes [cURL](https://curl.se) ;
+- l'interface intégrée Django REST framework à l'adresse http://127.0.0.1:8000/ (adresse par défaut, cf. points de terminaison ci-dessous).
+
+### Liste des utilisateurs existants :
 
 | *ID* | *Identifiant* | *Mot de passe*  |
 |------|---------------|-----------------|
@@ -8,7 +72,8 @@
 | 4    | admin         | SoftDesk1234    |
 
 
-#### Liste des points de terminaison de l'API :
+
+### Liste des points de terminaison de l'API :
 
 | #   | *Point de terminaison d'API*                                              | *Méthode HTTP* | *URL (base: http://127.0.0.1:8000)*       |
 |-----|---------------------------------------------------------------------------|----------------|-------------------------------------------|
