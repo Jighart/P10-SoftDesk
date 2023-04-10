@@ -47,11 +47,13 @@ class TestProjects():
         response = APIClient().get('/api/projects/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-
     def test_user_gets_projects_list(self, get_user1_token):
         response = get_user1_token.get('/api/projects/')
         assert response.status_code == status.HTTP_200_OK
 
+    def test_user2_gets_project1_details(self, get_user2_token):
+        response = get_user2_token.get('/api/projects/1/')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_project(self, get_user1_token):
         errors = []
@@ -69,11 +71,13 @@ class TestProjects():
 
         assert not errors
 
+    def test_user_author_deletes_project1(self, get_user1_token):
+        response = get_user1_token.delete('/api/projects/1/')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_user_not_author_deletes_project1(self, get_user2_token):
         response = get_user2_token.delete('/api/projects/1/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
-
     
     def test_user_updates_project(self, get_user1_token):
         errors = []
@@ -93,15 +97,6 @@ class TestProjects():
         assert not errors
 
 
-    def test_user_author_deletes_project1(self, get_user1_token):
-        response = get_user1_token.delete('/api/projects/1/')
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-
-
-    def test_user2_gets_project1_details(self, get_user2_token):
-        response = get_user2_token.get('/api/projects/1/')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
 
 @pytest.mark.django_db
 class TestContributors:
@@ -109,7 +104,6 @@ class TestContributors:
     def test_user_gets_contributors_list(self, get_user1_token):
         response = get_user1_token.get('/api/projects/1/users/')
         assert response.status_code == status.HTTP_200_OK
-
 
     def test_user_adds_new_contributor(self, get_user1_token):
         errors = []
@@ -134,16 +128,13 @@ class TestContributors:
         
         assert not errors
 
-
     def test_user_adds_non_existing_contributor(self, get_user1_token):
         response = get_user1_token.post('/api/projects/1/users/', data={'user': '1000'})
         assert response.json() == {'user': ['Invalid pk "1000" - object does not exist.']}
 
-
     def test_user_adds_duplicate_contributor(self, get_user2_token):
         response = get_user2_token.post('/api/projects/2/users/', data={'user': '1'})
         assert response.json() == {'non_field_errors': ['The fields project, user must make a unique set.']}
-
 
     @pytest.mark.parametrize('user, status_code',
                               [(444, status.HTTP_404_NOT_FOUND), (3, status.HTTP_204_NO_CONTENT),
@@ -168,7 +159,6 @@ class TestIssues:
         response = get_user1_token.post('/api/projects/1/issues/', issue_data)
         assert response.status_code == status.HTTP_201_CREATED
 
-
     def test_user_updates_issue(self, get_user1_token):
         errors = []
         issue_data = {
@@ -178,7 +168,6 @@ class TestIssues:
             'priority': 'MEDIUM',
             'status': 'IN PROGRESS'
         }
-
         response = get_user1_token.patch('/api/projects/1/issues/1', issue_data)
         
         if not response.status_code == status.HTTP_200_OK:
@@ -188,16 +177,13 @@ class TestIssues:
 
         assert not errors
 
-
     def test_user2_cannot_see_project1_issue(self, get_user2_token):
         response = get_user2_token.get('/api/projects/1/issues/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-
     def test_anonymous_user_cannot_see_project1_issue(self):
         response = APIClient().get('/api/projects/1/issues/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
 
     def test_user_deletes_his_issue(self, get_user1_token):
         response = get_user1_token.delete('/api/projects/1/issues/1')
@@ -211,7 +197,6 @@ class TestComments:
         response = get_user1_token.post('/api/projects/1/issues/1/comments/', data={'description': 'Lorem ipsum dolor sit amet'})
         assert response.status_code == status.HTTP_201_CREATED
 
-
     def test_user_updates_comment(self, get_user1_token):
         errors = []
         response = get_user1_token.patch('/api/projects/1/issues/1/comments/1', data={'description': 'Consectetur adipiscing elit'})
@@ -222,12 +207,14 @@ class TestComments:
             errors.append("Description not updated")
 
         assert not errors
-
     
     def test_user_deletes_comment(self, get_user1_token):
         response = get_user1_token.delete('/api/projects/1/issues/1/comments/1')
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    def test_user2_cannot_delete_user1_comment(self, get_user2_token):
+        response = get_user2_token.delete('/api/projects/1/issues/1/comments/1')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_anonymous_user_cannot_see_issue1_comments(self):
         response = APIClient().get('/api/projects/1/issues/1/comments/')

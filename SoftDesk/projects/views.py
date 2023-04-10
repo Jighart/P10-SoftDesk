@@ -4,7 +4,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import transaction
- 
+
 from projects.models import Project, Contributor, Issue, Comment
 from projects.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorListSerializer, ContributorDetailSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
 from projects.mixins import GetDetailSerializerClassMixin
@@ -26,12 +26,14 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         request.data['author'] = request.user.id
         request.POST._mutable = False
         project = super(ProjectViewset, self).create(request, *args, **kwargs)
+
         contributor = Contributor.objects.create(
             user=request.user,
             project=Project.objects.get(id=project.data['id']),
             role='AUTHOR'
         )
         contributor.save()
+
         return Response(project.data, status=status.HTTP_201_CREATED)
     
     @transaction.atomic
@@ -69,7 +71,7 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
             if user_to_delete.user == request.user:
                 return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_406_NOT_ACCEPTABLE)
         except Contributor.DoesNotExist:
-            return Response(data={'error': 'User does not exist!'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(data={'error': 'Contributor does not exist!'}, status=status.HTTP_404_NOT_FOUND)
         
         contributor = Contributor.objects.filter(id=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
         if contributor:
@@ -78,7 +80,6 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
         else:
             return Response(data={'error': 'Contributor not assigned to project!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        
 
 @permission_classes([IsAuthenticated, IssuePermissions])
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):

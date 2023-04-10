@@ -1,14 +1,17 @@
 import pytest
-from django.test import Client
+
+from rest_framework.test import APIClient
+from rest_framework import status
 
 
 @pytest.fixture
 def client():
-    return Client()
+    return APIClient()
+
 
 @pytest.fixture
 def credentials():
-    credentials = {
+    return {
         'first_name': 'Test',
         'last_name': 'User',
         'username': 'TestUser',
@@ -16,16 +19,16 @@ def credentials():
         'password': 'TestPassword',
         'password2': 'TestPassword'
     }
-    return credentials
 
 
 @pytest.mark.django_db
 def test_create_user(client, credentials):
     response = client.post('/api/signup/', credentials)
-    assert response.status_code == 201
+    assert response.status_code == status.HTTP_201_CREATED
+
 
 @pytest.mark.django_db
 def test_login(client, credentials):
     client.post('/api/signup/', credentials)
     response = client.post('/api/login/', {'username': 'TestUser', 'password': 'TestPassword'})
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
