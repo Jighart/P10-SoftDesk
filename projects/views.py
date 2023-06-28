@@ -53,7 +53,7 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
     detail_serializer_class = projects.serializers.ContributorDetailSerializer
 
     def get_queryset(self):
-        return get_list_or_404(Contributor, project=self.kwargs['projects_pk'])
+        return Contributor.objects.filter(project=self.kwargs['projects_pk'])
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -86,7 +86,7 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
     detail_serializer_class = projects.serializers.IssueDetailSerializer
 
     def get_queryset(self):
-        return get_list_or_404(Issue, project=self.kwargs['projects_pk'])
+        return Issue.objects.filter(project=self.kwargs['projects_pk'])
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -118,7 +118,7 @@ class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
     detail_serializer_class = projects.serializers.CommentSerializer
 
     def get_queryset(self):
-        return get_list_or_404(Comment, issue=self.kwargs['issues_pk'])
+        return Comment.objects.filter(issue=self.kwargs['issues_pk'])
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):

@@ -13,7 +13,7 @@ def check_contributor(user, project):
 
 class ProjectPermissions(permissions.BasePermission):
 
-    message = 'You dont have permissions to do that.'
+    message = 'You don\'t have permissions to do that.'
 
     def has_object_permission(self, request, view, obj):
         if view.action in ['retrieve', 'list']:
@@ -24,7 +24,7 @@ class ProjectPermissions(permissions.BasePermission):
 
 class ContributorPermissions(permissions.BasePermission):
 
-    message = 'You dont have permissions to do that.'
+    message = 'You don\'t have permissions to do that.'
 
     def has_permission(self, request, view):
         try:
@@ -32,13 +32,13 @@ class ContributorPermissions(permissions.BasePermission):
                 return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
             elif view.action in ['update', 'partial_update', 'create', 'destroy']:
                 return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
-        except ObjectDoesNotExist:
-            return ObjectDoesNotExist
+        except Exception:
+            return False
 
 
 class IssuePermissions(permissions.BasePermission):
 
-    message = 'You dont have permission to do that.'
+    message = 'You don\'t have permissions to do that.'
 
     def has_permission(self, request, view):
         try:
@@ -46,13 +46,13 @@ class IssuePermissions(permissions.BasePermission):
                 return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
             elif view.action in ['update', 'partial_update', 'destroy']:
                 return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
-        except ObjectDoesNotExist:
-            return ObjectDoesNotExist
+        except Exception:
+            return False
 
 
 class CommentPermissions(permissions.BasePermission):
 
-    message = 'You dont have permission to do that.'
+    message = 'You don\'t have permissions to do that.'
 
     def has_permission(self, request, view):
         try:
@@ -60,5 +60,5 @@ class CommentPermissions(permissions.BasePermission):
                 return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
             elif view.action in ['update', 'partial_update', 'destroy']:
                 return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
-        except ObjectDoesNotExist:
-            return ObjectDoesNotExist
+        except Exception:
+            return False
