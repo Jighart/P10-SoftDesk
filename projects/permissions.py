@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import permissions
 
 from projects.models import Project, Contributor
@@ -26,10 +27,13 @@ class ContributorPermissions(permissions.BasePermission):
     message = 'You dont have permissions to do that.'
 
     def has_permission(self, request, view):
-        if view.action in ['retrieve', 'list']:
-            return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
-        elif view.action in ['update', 'partial_update', 'create', 'destroy']:
-            return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        try:
+            if view.action in ['retrieve', 'list']:
+                return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
+            elif view.action in ['update', 'partial_update', 'create', 'destroy']:
+                return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        except ObjectDoesNotExist:
+            return ObjectDoesNotExist
 
 
 class IssuePermissions(permissions.BasePermission):
@@ -37,10 +41,13 @@ class IssuePermissions(permissions.BasePermission):
     message = 'You dont have permission to do that.'
 
     def has_permission(self, request, view):
-        if view.action in ['retrieve', 'list', 'create']:
-            return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
-        elif view.action in ['update', 'partial_update', 'destroy']:
-            return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        try:
+            if view.action in ['retrieve', 'list', 'create']:
+                return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
+            elif view.action in ['update', 'partial_update', 'destroy']:
+                return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        except ObjectDoesNotExist:
+            return ObjectDoesNotExist
 
 
 class CommentPermissions(permissions.BasePermission):
@@ -48,7 +55,10 @@ class CommentPermissions(permissions.BasePermission):
     message = 'You dont have permission to do that.'
 
     def has_permission(self, request, view):
-        if view.action in ['retrieve', 'list', 'create']:
-            return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
-        elif view.action in ['update', 'partial_update', 'destroy']:
-            return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        try:
+            if view.action in ['retrieve', 'list', 'create']:
+                return check_contributor(request.user, Project.objects.get(id=view.kwargs['projects_pk']))
+            elif view.action in ['update', 'partial_update', 'destroy']:
+                return request.user == Project.objects.get(id=view.kwargs['projects_pk']).author
+        except ObjectDoesNotExist:
+            return ObjectDoesNotExist

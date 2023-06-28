@@ -1,3 +1,4 @@
+from django.shortcuts import get_list_or_404
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import permission_classes
@@ -6,20 +7,19 @@ from rest_framework import status
 from django.db import transaction
 
 from projects.models import Project, Contributor, Issue, Comment
-from projects.serializers import ProjectListSerializer, ProjectDetailSerializer, ContributorListSerializer, ContributorDetailSerializer, IssueListSerializer, IssueDetailSerializer, CommentSerializer
 from projects.mixins import GetDetailSerializerClassMixin
 from projects.permissions import ProjectPermissions, ContributorPermissions, IssuePermissions, CommentPermissions
- 
+import projects.serializers
+
 
 @permission_classes([IsAuthenticated, ProjectPermissions])
 class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
- 
-    serializer_class = ProjectListSerializer
-    detail_serializer_class = ProjectDetailSerializer
- 
+    serializer_class = projects.serializers.ProjectListSerializer
+    detail_serializer_class = projects.serializers.ProjectDetailSerializer
+
     def get_queryset(self):
         return Project.objects.all()
-    
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
@@ -35,7 +35,7 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
         contributor.save()
 
         return Response(project.data, status=status.HTTP_201_CREATED)
-    
+
     @transaction.atomic
     def update(self, request, *args, **kwargs):
         request.POST._mutable = True
@@ -45,16 +45,15 @@ class ProjectViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         return super(ProjectViewset, self).destroy(request, *args, **kwargs)
-    
+
 
 @permission_classes([ContributorPermissions])
 class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
-
-    serializer_class = ContributorListSerializer
-    detail_serializer_class = ContributorDetailSerializer
+    serializer_class = projects.serializers.ContributorListSerializer
+    detail_serializer_class = projects.serializers.ContributorDetailSerializer
 
     def get_queryset(self):
-        return Contributor.objects.filter(project=self.kwargs['projects_pk'])
+        return get_list_or_404(Contributor, project=self.kwargs['projects_pk'])
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -72,7 +71,7 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
                 return Response(data={'error': 'You cannot delete yourself!'}, status=status.HTTP_406_NOT_ACCEPTABLE)
         except Contributor.DoesNotExist:
             return Response(data={'error': 'Contributor does not exist!'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         contributor = Contributor.objects.filter(id=self.kwargs['pk'], project=self.kwargs['projects_pk']).first()
         if contributor:
             contributor.delete()
@@ -83,13 +82,12 @@ class ContributorsViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
 @permission_classes([IsAuthenticated, IssuePermissions])
 class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
-
-    serializer_class = IssueListSerializer
-    detail_serializer_class = IssueDetailSerializer
+    serializer_class = projects.serializers.IssueListSerializer
+    detail_serializer_class = projects.serializers.IssueDetailSerializer
 
     def get_queryset(self):
-        return Issue.objects.filter(project=self.kwargs['projects_pk'])
-    
+        return get_list_or_404(Issue, project=self.kwargs['projects_pk'])
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
@@ -112,17 +110,16 @@ class IssueViewset(GetDetailSerializerClassMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         return super(IssueViewset, self).destroy(request, *args, **kwargs)
-    
+
 
 @permission_classes([CommentPermissions])
 class CommentViewset(GetDetailSerializerClassMixin, ModelViewSet):
-
-    serializer_class = CommentSerializer
-    detail_serializer_class = CommentSerializer
+    serializer_class = projects.serializers.CommentSerializer
+    detail_serializer_class = projects.serializers.CommentSerializer
 
     def get_queryset(self):
-        return Comment.objects.filter(issue=self.kwargs['issues_pk'])
-    
+        return get_list_or_404(Comment, issue=self.kwargs['issues_pk'])
+
     @transaction.atomic
     def create(self, request, *args, **kwargs):
         request.POST._mutable = True
