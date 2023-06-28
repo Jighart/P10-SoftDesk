@@ -5,10 +5,10 @@ from django.db import models
 class Project(models.Model):
 
     TYPES = [
-    ('BACKEND', 'BACKEND'),
-    ('FRONTEND', 'FRONTEND'),
-    ('iOS', 'iOS'),
-    ('ANDROID', 'ANDROID')
+        ('BACKEND', 'BACKEND'),
+        ('FRONTEND', 'FRONTEND'),
+        ('iOS', 'iOS'),
+        ('ANDROID', 'ANDROID')
     ]
 
     title = models.CharField(max_length=128)
@@ -23,8 +23,8 @@ class Project(models.Model):
 class Contributor(models.Model):
 
     ROLES = [
-    ('AUTHOR', 'AUTHOR'),
-    ('CONTRIBUTOR', 'CONTRIBUTOR')
+        ('AUTHOR', 'AUTHOR'),
+        ('CONTRIBUTOR', 'CONTRIBUTOR')
     ]
 
     user = models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -38,9 +38,9 @@ class Contributor(models.Model):
 class Issue(models.Model):
 
     TAGS = [
-    ('BUG', 'BUG'),
-    ('TASK', 'TASK'),
-    ('UPGRADE', 'UPGRADE')
+        ('BUG', 'BUG'),
+        ('TASK', 'TASK'),
+        ('UPGRADE', 'UPGRADE')
     ]
 
     PRIORITIES = [
