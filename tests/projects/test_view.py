@@ -4,7 +4,6 @@ from django.core.management import call_command
 from rest_framework.test import APIClient
 from rest_framework import status
 
-
 client = APIClient()
 
 
@@ -41,7 +40,7 @@ def get_user2_token():
 
 
 @pytest.mark.django_db
-class TestProjects():
+class TestProjects:
 
     def test_anonymous_user_gets_projects_list(self):
         response = APIClient().get('/api/projects/')
@@ -78,7 +77,7 @@ class TestProjects():
     def test_user_not_author_deletes_project1(self, get_user2_token):
         response = get_user2_token.delete('/api/projects/1/')
         assert response.status_code == status.HTTP_403_FORBIDDEN
-    
+
     def test_user_updates_project(self, get_user1_token):
         errors = []
         project_data = {
@@ -97,7 +96,6 @@ class TestProjects():
         assert not errors
 
 
-
 @pytest.mark.django_db
 class TestContributors:
 
@@ -108,7 +106,7 @@ class TestContributors:
     def test_user_adds_new_contributor(self, get_user1_token):
         errors = []
         response = get_user1_token.post('/api/projects/1/users/', data={'user': '2', 'role': 'AUTHOR'})
-        
+
         client = APIClient()
         login = client.post('/api/login/', data={
             'username': 'TestUser2',
@@ -124,8 +122,8 @@ class TestContributors:
         if not response.json()['role'] == 'CONTRIBUTOR':
             errors.append("Wrong role during contributor creation")
         if not new_contributor_can_access.status_code == status.HTTP_200_OK:
-            errors.append("New contributor does not have access to the project")    
-        
+            errors.append("New contributor does not have access to the project")
+
         assert not errors
 
     def test_user_adds_non_existing_contributor(self, get_user1_token):
@@ -137,8 +135,8 @@ class TestContributors:
         assert response.json() == {'non_field_errors': ['The fields project, user must make a unique set.']}
 
     @pytest.mark.parametrize('user, status_code',
-                              [(444, status.HTTP_404_NOT_FOUND), (3, status.HTTP_204_NO_CONTENT),
-                               (2, status.HTTP_406_NOT_ACCEPTABLE), (1, status.HTTP_400_BAD_REQUEST)])
+                             [(444, status.HTTP_404_NOT_FOUND), (3, status.HTTP_204_NO_CONTENT),
+                              (2, status.HTTP_406_NOT_ACCEPTABLE), (1, status.HTTP_400_BAD_REQUEST)])
     def test_author_deletes_contributor(self, get_user2_token, user, status_code):
         response = get_user2_token.delete(f'/api/projects/2/users/{user}')
         assert response.status_code == status_code
@@ -169,7 +167,7 @@ class TestIssues:
             'status': 'IN PROGRESS'
         }
         response = get_user1_token.patch('/api/projects/1/issues/1', issue_data)
-        
+
         if not response.status_code == status.HTTP_200_OK:
             errors.append("Wrong status code")
         if not response.json()['title'] == 'New issue':
@@ -207,7 +205,7 @@ class TestComments:
             errors.append("Description not updated")
 
         assert not errors
-    
+
     def test_user_deletes_comment(self, get_user1_token):
         response = get_user1_token.delete('/api/projects/1/issues/1/comments/1')
         assert response.status_code == status.HTTP_204_NO_CONTENT
